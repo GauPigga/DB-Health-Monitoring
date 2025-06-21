@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Set DB Config</title>
+<style>
+  :root {
+    --bg: #0a192f;
+    --panel: #112240;
+    --accent: #64ffda;
+    --text-light: #ccd6f6;
+    --text-muted: #8892b0;
+    --input-bg: #1c2c4a;
+    --input-border: #233554;
+    --error: #ff6b6b;
+    --success: #38d39f;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: sans-serif, Tahoma, Geneva, Verdana;
+    background: var(--bg);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: var(--text-light);
+  }
+
+  .container {
+    background: var(--panel);
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.5s ease-out;
+    height: 95vh;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2 {
+    margin-bottom: 25px;
+    color: rgb(235, 235, 235);
+    font-weight: 700;
+    text-align: center;
+    font-size: 1.6rem;
+    letter-spacing: 0.8px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  input {
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-radius: 12px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    color: var(--text-light);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #0c79d2;
+    box-shadow: 0 0 5px var(--accent);
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 14px;
+    font-size: 1rem;
+    background-color: #0c79d2;
+    border: none;
+    color: rgb(235, 235, 235);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease, transform 0.15s ease;
+  }
+
+  button:hover {
+    background-color: #3396e8;
+    transform: translateY(-1px);
+  }
+
+  #msg {
+    margin-top: 18px;
+    font-weight: 600;
+    text-align: center;
+    min-height: 24px;
+  }
+
+  #msg.error {
+    color: var(--error);
+  }
+
+  #msg.success {
+    color: var(--success);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Database Configuration</h2>
+    <form id="config-form" autocomplete="off" spellcheck="false">
+      <input name="user" placeholder="User" required autocomplete="username" />
+      <input name="password" type="password" placeholder="Password" required autocomplete="current-password" />
+      <input name="host" placeholder="Host (e.g. localhost)" required autocomplete="off" />
+      <input name="port" placeholder="Port (e.g. 1521)" required autocomplete="off" inputmode="numeric" />
+      <input name="service_name" placeholder="Service Name" required autocomplete="off" />
+      <button type="submit">Submit</button>
+    </form>
+    <div id="msg"></div>
+  </div>
+
+<script>
+  const { ipcRenderer } = require('electron');
+  const form = document.getElementById('config-form');
+  const msgDiv = document.getElementById('msg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    msgDiv.textContent = '⏳ Sending config...';
+    msgDiv.className = '';
+
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/set-db-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        msgDiv.textContent = '✅ Config set successfully. Loading app...';
+        msgDiv.className = 'success';
+        ipcRenderer.send('config-submitted');
+      } else {
+        msgDiv.textContent = '❌ ' + (result.error || 'Invalid config');
+        msgDiv.className = 'error';
+      }
+    } catch (err) {
+      msgDiv.textContent = '❌ Connection error: ' + err.message;
+      msgDiv.className = 'error';
+    }
+  });
+</script>
+</body>
+</html>
