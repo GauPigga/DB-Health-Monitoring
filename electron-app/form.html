@@ -17,12 +17,10 @@
     --success: #38d39f;
   }
 
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   body {
-    font-family: sans-serif, Tahoma, Geneva, Verdana;
+    font-family: sans-serif;
     background: var(--bg);
     margin: 0;
     display: flex;
@@ -50,7 +48,7 @@
 
   h2 {
     margin-bottom: 25px;
-    color: rgb(235, 235, 235);
+    color: #ebebeb;
     font-weight: 700;
     text-align: center;
     font-size: 1.6rem;
@@ -85,7 +83,7 @@
     font-size: 1rem;
     background-color: #0c79d2;
     border: none;
-    color: rgb(235, 235, 235);
+    color: #ebebeb;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -104,13 +102,8 @@
     min-height: 24px;
   }
 
-  #msg.error {
-    color: var(--error);
-  }
-
-  #msg.success {
-    color: var(--success);
-  }
+  #msg.error { color: var(--error); }
+  #msg.success { color: var(--success); }
 </style>
 </head>
 <body>
@@ -119,9 +112,9 @@
     <form id="config-form" autocomplete="off" spellcheck="false">
       <input name="user" placeholder="User" required autocomplete="username" />
       <input name="password" type="password" placeholder="Password" required autocomplete="current-password" />
-      <input name="host" placeholder="Host (e.g. localhost)" required autocomplete="off" />
-      <input name="port" placeholder="Port (e.g. 1521)" required autocomplete="off" inputmode="numeric" />
-      <input name="service_name" placeholder="Service Name" required autocomplete="off" />
+      <input name="host" placeholder="Host (e.g. localhost)" required />
+      <input name="port" placeholder="Port (e.g. 1521)" required inputmode="numeric" />
+      <input name="service_name" placeholder="Service Name" required />
       <button type="submit">Submit</button>
     </form>
     <div id="msg"></div>
@@ -151,9 +144,12 @@
       if (res.ok) {
         msgDiv.textContent = '✅ Config set successfully. Loading app...';
         msgDiv.className = 'success';
-        ipcRenderer.send('config-submitted');
+
+        setTimeout(() => {
+          ipcRenderer.send('config-submitted'); // ✅ Open window only on success
+        }, 700);
       } else {
-        msgDiv.textContent = '❌ ' + (result.error || 'Invalid config');
+        msgDiv.textContent = '❌ ' + (result.error || 'Invalid credentials');
         msgDiv.className = 'error';
       }
     } catch (err) {

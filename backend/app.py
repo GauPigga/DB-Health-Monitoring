@@ -1,32 +1,35 @@
-from flask import Flask, jsonify,request
-from flask_cors import CORS
-from utils.db import fetch_all_dict, fetch_one_dict
 from datetime import datetime
 import threading
 import time
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from utils.db import fetch_all_dict, fetch_one_dict, test_connection
+from config_store import update_db_config
+
 
 app = Flask(__name__)
 CORS(app)
 
-ORACLE_CONFIG = {}
-
-def update_db_config(new_config):
-    global ORACLE_CONFIG
-    ORACLE_CONFIG = new_config
-
 @app.route("/api/set-db-config", methods=["POST"])
 def set_db_config():
     data = request.json
+    print("Received DB config:", data)
+
     required_keys = {"user", "password", "host", "port", "service_name"}
     if not all(k in data for k in required_keys):
         return jsonify({"error": "Missing parameters"}), 400
-    update_db_config(data)
+
+    # Temporarily store to test connection
+    try:
+        update_db_config(data)
+        test_connection()  # 👈 Attempt a real DB connection
+    except Exception as e:
+        return jsonify({"error": f"Connection failed: {str(e)}"}), 401
+
     return jsonify({"message": "DB config updated"})
 
-def get_current_db_config():
-    if not ORACLE_CONFIG:
-        raise Exception("DB config not set. Use /api/set-db-config")
-    return ORACLE_CONFIG
+
+
 
 sql_trend_data = []
 

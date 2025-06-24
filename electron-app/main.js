@@ -59,7 +59,7 @@ function createMainWindow() {
     }
   });
 
-  mainWin.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
+  mainWin.loadFile(path.join(__dirname, 'dist/index.html'));
 }
 
 app.whenReady().then(() => {

@@ -1,8 +1,14 @@
 import oracledb
-from config import get_current_db_config
+from config_store import get_current_db_config
+
+def test_connection():
+    """Raises an error if the connection fails."""
+    conn = get_connection()
+    conn.close()
 
 def get_connection():
     config = get_current_db_config()
+    print(config)
     dsn = oracledb.makedsn(
         config["host"],
         int(config["port"]),
